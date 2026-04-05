@@ -1,3 +1,26 @@
+<?php
+session_start();
+include "db_conn.php";
+
+// 1. Check kung sino ang user (Para sa kaniya-kaniyang cart badge at profile)
+$is_logged_in = isset($_SESSION['user_id']);
+$user_id = $is_logged_in ? $_SESSION['user_id'] : 'guest';
+
+$fullname = "Guest User";
+$profile_pic = "";
+
+// 2. Kunin ang data ng user mula sa database kung naka-login
+if ($is_logged_in) {
+    $sql = "SELECT full_name, profile_pic FROM create_acc WHERE id = '$user_id'";
+    $result = mysqli_query($conn, $sql);
+    if ($result && mysqli_num_rows($result) > 0) {
+        $user_data = mysqli_fetch_assoc($result);
+        $fullname = $user_data['full_name'];
+        $profile_pic = $user_data['profile_pic'];
+    }
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,12 +33,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Code:ital,wght@0,300..800;1,300..800&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Pacifico&family=Patrick+Hand&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
     
@@ -29,7 +48,7 @@
         </div>
         
         <div class="header-actions">
-            <a href="cart.html" class="cart-icon-btn">
+            <a href="cart.php" class="cart-icon-btn">
                 <i class="fa-solid fa-shopping-cart"></i>
                 <span class="badge" id="cart-badge">0</span>
             </a>
@@ -47,11 +66,15 @@
         </div>
         <div class="profile-info">
             <div class="profile-img">
-                <i class="fa-solid fa-user"></i>
+                <?php if (!empty($profile_pic)): ?>
+                    <img src="<?php echo htmlspecialchars($profile_pic); ?>" style="width:100%; border-radius:50%; aspect-ratio: 1/1; object-fit: cover;">
+                <?php else: ?>
+                    <i class="fa-solid fa-user"></i>
+                <?php endif; ?>
             </div>
             <div class="profile-text">
-                <h3>Juan Dela Cruz</h3>
-                <a href="Profile.php">(View Profile)</a>
+                <h3><?php echo htmlspecialchars($fullname); ?></h3>
+                <?php if($is_logged_in): ?><a href="Profile.php">(View Profile)</a><?php endif; ?>
             </div>
         </div>
     </div>
@@ -481,7 +504,7 @@
                     <p class="desc">Perfectly Cooked Plain Rice</p>
                     <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
                     <div class="card-actions">
-                        <button class="btn-add-cart" onclick="addToCart('Plain Rice', 15, 'https://res.cloudinary.com/dn38jxbeh/image/upload/v1773501395/Plain_Rice_cdrzuz .png')">Add to Cart! <i class="fa-solid fa-cart-shopping"></i></button>
+                        <button class="btn-add-cart" onclick="addToCart('Plain Rice', 15, 'https://res.cloudinary.com/dn38jxbeh/image/upload/v1773501395/Plain_Rice_cdrzuz.png')">Add to Cart! <i class="fa-solid fa-cart-shopping"></i></button>
                         <button class="btn-fav"><i class="fa-regular fa-heart"></i></button>
                     </div>
                 </div>
@@ -528,7 +551,7 @@
             </div> 
     </main>
 
-    <div id="toast">Item added to cart!</div>
+    <div id="toast" style="visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 50px; padding: 16px; position: fixed; z-index: 1000; left: 50%; bottom: 30px; transform: translateX(-50%); transition: 0.3s;">Item added to cart!</div>
 <footer id="contact">
         <div class="footer-content">
             <div class="footer-section contact-info">
@@ -562,10 +585,15 @@
         </div>
         
         <div class="footer-bottom">
-            <p>© 2022 Kainan ni Ate Kabayan. All Right Reserved.</p>
+            <p>© 2026 Kainan ni Ate Kabayan. All Right Reserved.</p>
         </div>
     </footer>   
 
+    <script>
+        // Ipasa ang cartKey para sa kaniya-kaniyang cart badge
+        const currentUserId = "<?php echo $user_id; ?>";
+        const cartKey = 'cart_' + currentUserId;
+    </script>
     <script src="menu.js"></script>
 </body>
 </html>
